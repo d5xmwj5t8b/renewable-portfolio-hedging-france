@@ -13,9 +13,8 @@ Main results for 2023 (France):
 * Average baseload spot: 96.9 EUR/MWh. Solar capture price: 82.0 EUR/MWh (cannibalisation of 15.4%). Wind capture price: 86.3 EUR/MWh (10.9%).
 * 147 hours of negative prices, mostly during high-renewable, low-demand periods.
 * The spot price tracks residual load (demand minus wind and solar, correlation 0.73) more closely than total demand (0.55): the marginal plant serves what renewables leave uncovered.
-* Wind: the risk-adjusted return curve is concave, with an optimum around 70% PPA that cuts the standard deviation of monthly revenue by about 12% at a 2023-level strike.
-* Solar: the optimum is 0% PPA at every strike from 60 to 100 EUR/MWh. Solar volume and capture price offset each other month to month (correlation -0.58), a natural hedge that a pay-as-produced PPA removes.
-* The strike sets the cost of the hedge, not the risk-adjusted optimum: across 60-100 EUR/MWh the optimal ratio moves by 10 points at most.
+* Wind: the risk-adjusted return curve is concave, with an optimum around 75% PPA that cuts monthly revenue volatility by about 20%.
+* Solar: a pay-as-produced PPA barely reduces volatility, because most of it comes from seasonal volume rather than price. With a strike below the 2023 capture price, the best ratio is 0% PPA.
 
 ## Why this matters
 
@@ -31,7 +30,7 @@ A renewable asset produces the most when its own technology is flooding the grid
 
 4. Capture prices and cannibalisation. Volume-weighted capture price per technology against the simple baseload average, computed monthly and annually, to quantify the discount each technology suffers from producing in its own low-price hours.
 
-5. Hedging and risk optimisation. National generation was scaled to a 10 MW asset (scaled so that annual peak output equals 10 MW). I then swept the hedge ratio from 0 to 100% PPA and, for each level, computed the mean and standard deviation of monthly revenue and their ratio as a risk-adjusted return measure. PPA strikes are set at 2023 market levels, taken from the average prices awarded in the French CRE tenders: 83 EUR/MWh for solar (ground-mounted PV, 82-85 EUR/MWh in 2023) and 87 EUR/MWh for wind (onshore, 86.9 EUR/MWh). A sensitivity analysis then sweeps the strike from 60 to 100 EUR/MWh.
+5. Hedging and risk optimisation. National generation was scaled to a 10 MW asset (scaled so that annual peak output equals 10 MW). I then swept the hedge ratio from 0 to 100% PPA and, for each level, computed the mean and standard deviation of monthly revenue and their ratio as a risk-adjusted return measure. PPA strikes assumed: 65 EUR/MWh for solar, 75 EUR/MWh for wind.
 
 ## Findings
 
@@ -39,25 +38,21 @@ Cannibalisation was clear in 2023. Solar lost 15.4% against baseload, wind 10.9%
 
 Per MWh, wind was worth more than solar under every strategy (86.3 vs 82.0 EUR/MWh merchant). In absolute terms the gap is larger, mainly because wind has a higher load factor.
 
-Wind has an interior optimum. The curve is flat between roughly 60% and 90% PPA, with a peak around 70%: over-hedging gives away the scarcity upside, under-hedging leaves the book too volatile. A 70% PPA / 30% spot book cuts the standard deviation of wind revenue by about 12% at 87 EUR/MWh while keeping merchant exposure to cold-snap spikes. At that strike, the PPA was also slightly above the 2023 wind capture price (86.3 EUR/MWh).
+Wind has an interior optimum. The curve is flat between roughly 60% and 90% PPA, with a peak around 75%: over-hedging gives away the scarcity upside, under-hedging leaves the book too volatile. A 70% PPA / 30% spot book cuts wind revenue volatility by about 20% while keeping merchant exposure to cold-snap spikes.
 
-Solar does not, and the strike is not the reason. The optimum stays at 0% PPA for every strike from 60 to 100 EUR/MWh. Months with high solar output (summer) are months with low capture prices, so merchant revenue is more stable than volume alone (mean/std of 2.85 against 2.30 for a 100% PPA). A pay-as-produced PPA fixes the price and leaves the full seasonal volume swing, so it raises relative volatility.
-
-The strike sets the cost of the hedge, not the risk-adjusted optimum. Because mean/std does not change when revenues are rescaled, a different strike only rescales the PPA leg: the optimal ratio moves by a few points, while the EUR/MWh given up or gained against merchant changes a lot (from -22 to +18 EUR/MWh for solar across the range).
-
-This does not mean a solar producer should stay merchant. Within one year, the metric treats the predictable seasonal shape as risk and ignores what a solar PPA is bought for: protection against a fall in the level of capture prices from one year to the next and against growing cannibalisation.
+Solar does not. Its monthly revenue swings are driven by the seasonal production shape, which a pay-as-produced PPA does not remove, so hedging lowers volatility by 5% at most. Since the assumed strike (65 EUR/MWh) is below the 2023 solar capture price, each hedged MWh costs return, and the optimum falls to 0% PPA. The point is the shape of the trade-off, not a magic number.
 
 ## Limitations
 
 * Single year (2023), so the results depend on the price regime. This is not a walk-forward backtest across several environments.
 * The risk metric (standard deviation of 12 monthly revenues) mixes genuine uncertainty with the predictable seasonal shape of production. A better version would measure deviation from an expected monthly profile estimated over several years.
 * The 10 MW asset uses the national fleet profile as a proxy. Scaling to peak output rather than installed capacity overstates load factors (19% solar, 32% wind here, above the real fleet). Capture prices and hedge ratios are unaffected; absolute revenues are overstated.
-* PPA strikes are proxied by 2023 CRE tender prices (contracts for difference), not by tenor or shape-adjusted bilateral PPA prices.
+* PPA strikes are fixed assumptions, not tenor or shape-adjusted prices.
 * Day-Ahead only, with no intraday or imbalance settlement.
 
 ## Changelog
 
-* v2 (October 2026): fixed a date-parsing bug. RTE dates are month-first; parsing them day-first swapped day and month for the first twelve days of each month, misaligning volumes and prices. Also stopped interpolating genuine zeros and recovered the daylight-saving hours. PPA strikes moved from assumed values (65/75 EUR/MWh) to 2023 CRE tender levels (83/87 EUR/MWh), with a strike sensitivity analysis. All results above are from v2.
+* v2 (October 2026): fixed a date-parsing bug. RTE dates are month-first; parsing them day-first swapped day and month for the first twelve days of each month, misaligning volumes and prices. Also stopped interpolating genuine zeros and recovered the daylight-saving hours. All results above are from v2.
 
 ## How to run
 
