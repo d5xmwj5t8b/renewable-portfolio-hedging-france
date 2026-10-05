@@ -14,7 +14,7 @@ Main results for 2023 (France):
 * 147 hours of negative prices, mostly during high-renewable, low-demand periods.
 * The spot price tracks residual load (demand minus wind and solar, correlation 0.73) more closely than total demand (0.55): the marginal plant serves what renewables leave uncovered.
 * Wind: the risk-adjusted return curve is concave, with an optimum around 75% PPA that cuts monthly revenue volatility by about 20%.
-* Solar: a pay-as-produced PPA barely reduces volatility, because most of it comes from seasonal volume rather than price. With a strike below the 2023 capture price, the best ratio is 0% PPA.
+* Solar: the best ratio is 0% PPA. High-output months are low-price months (natural hedge), and a pay-as-produced PPA removes that offset.
 
 ## Why this matters
 
@@ -40,7 +40,7 @@ Per MWh, wind was worth more than solar under every strategy (86.3 vs 82.0 EUR/M
 
 Wind has an interior optimum. The curve is flat between roughly 60% and 90% PPA, with a peak around 75%: over-hedging gives away the scarcity upside, under-hedging leaves the book too volatile. A 70% PPA / 30% spot book cuts wind revenue volatility by about 20% while keeping merchant exposure to cold-snap spikes.
 
-Solar does not. Its monthly revenue swings are driven by the seasonal production shape, which a pay-as-produced PPA does not remove, so hedging lowers volatility by 5% at most. Since the assumed strike (65 EUR/MWh) is below the 2023 solar capture price, each hedged MWh costs return, and the optimum falls to 0% PPA. The point is the shape of the trade-off, not a magic number.
+Solar does not. Months with high solar output (summer) are months with low capture prices, so volume and price partly offset each other and merchant revenue is already relatively stable. A pay-as-produced PPA fixes the price and removes that natural hedge, leaving the full seasonal volume swing, so the optimum is 0% PPA whatever the strike. The point is the shape of the trade-off, not a magic number.
 
 ## Limitations
 
