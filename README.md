@@ -1,6 +1,6 @@
 # Renewable Asset Valuation & Hedging Strategy (France 2023)
 
-Reconstructing the P&L of a 10 MW wind/solar portfolio from one full year of hourly RTE generation and EPEX SPOT Day-Ahead data, then finding the PPA/spot hedge ratio that gives the best risk-adjusted return.
+Reconstructing the P&L of a 10 MW wind/solar portfolio from one full year of hourly RTE generation and EPEX SPOT Day-Ahead data, then testing which PPA/spot hedge ratio gives the best risk-adjusted return.
 
 ![Risk-adjusted return vs hedge ratio](hedging_frontier.png)
 
@@ -10,10 +10,11 @@ The question I wanted to answer is the one a portfolio manager actually faces: h
 
 Main results for 2023 (France):
 
-* Average baseload spot: 96.9 EUR/MWh. Solar capture price: 86.0 EUR/MWh (cannibalisation of 11.3%). Wind capture price: 89.6 EUR/MWh (7.6%).
+* Average baseload spot: 96.9 EUR/MWh. Solar capture price: 82.0 EUR/MWh (cannibalisation of 15.4%). Wind capture price: 86.3 EUR/MWh (10.9%).
 * 147 hours of negative prices, mostly during high-renewable, low-demand periods.
-* Demand/price correlation of only 33%, which confirms that in 2023 the price was set mainly by the marginal fuel cost (gas), not by French load on its own.
-* The risk/return curve is concave with an interior optimum: around 80% PPA for wind, around 40% for solar. A blended hedge near 70% PPA cuts wind revenue volatility by 30% while keeping spot exposure to scarcity pricing.
+* The spot price tracks residual load (demand minus wind and solar, correlation 0.73) more closely than total demand (0.55): the marginal plant serves what renewables leave uncovered.
+* Wind: the risk-adjusted return curve is concave, with an optimum around 75% PPA that cuts monthly revenue volatility by about 20%.
+* Solar: a pay-as-produced PPA barely reduces volatility, because most of it comes from seasonal volume rather than price. With a strike below the 2023 capture price, the best ratio is 0% PPA.
 
 ## Why this matters
 
@@ -21,30 +22,44 @@ A renewable asset produces the most when its own technology is flooding the grid
 
 ## Method
 
-1. Data engineering (ETL). Loaded raw RTE generation (15 min) and EPEX SPOT Day-Ahead prices. Handled the separator and encoding ambiguity, removed artificial zero-production values by linear interpolation, resampled production to hourly, and inner-joined it to prices into a single hourly dataset.
+1. Data engineering (ETL). Loaded raw RTE generation (15 min) and EPEX SPOT Day-Ahead prices. Handled separator and encoding ambiguity, parsed RTE's month-first dates explicitly, interpolated the empty quarter-hour rows (genuine zeros such as solar at night are kept), handled the two daylight-saving hours, resampled production to hourly and inner-joined it to prices into a single hourly dataset.
 
-2. System fundamentals. French load is 32% higher in January than in July, which is the structural driver of winter price tension. I also plotted the daily generation mix (nuclear, hydro, renewables) against demand.
+2. System fundamentals. French load is 46% higher in January than in July, which is the structural driver of winter price tension. I also plotted the daily generation mix (nuclear, hydro, renewables) against demand.
 
-3. Peak-load stress test. The annual peak was 83.8 GW on 23 January 2023 at 19:00, clearing at 223 EUR/MWh. Renewables covered only 9.9% of that peak, so the price was set by the residual load (demand minus renewables), which is what the marginal thermal plant has to serve. This is the merit-order logic made concrete.
+3. Peak-load stress test. The annual peak was 83.8 GW on 23 January 2023 at 19:00, clearing at 223 EUR/MWh. Wind and solar covered only 9.8% of that peak, so the price was set by the residual load, which is what the marginal thermal plant has to serve. This is the merit-order logic made concrete.
 
 4. Capture prices and cannibalisation. Volume-weighted capture price per technology against the simple baseload average, computed monthly and annually, to quantify the discount each technology suffers from producing in its own low-price hours.
 
-5. Hedging and risk optimisation. National generation was normalised to a 10 MW asset (implied load factors of 19% for solar and 32% for wind, both consistent with the real French fleet). I then swept the full hedge ratio from 0 to 100% PPA and, for each level, computed the mean and standard deviation of monthly revenue and their ratio as a risk-adjusted return measure. PPA strikes assumed: 65 EUR/MWh for solar, 75 EUR/MWh for wind.
+5. Hedging and risk optimisation. National generation was scaled to a 10 MW asset (scaled so that annual peak output equals 10 MW). I then swept the hedge ratio from 0 to 100% PPA and, for each level, computed the mean and standard deviation of monthly revenue and their ratio as a risk-adjusted return measure. PPA strikes assumed: 65 EUR/MWh for solar, 75 EUR/MWh for wind.
 
 ## Findings
 
-Cannibalisation was real but moderate in 2023. Solar lost 11.3% against baseload, wind 7.6%. The gap is smaller than in a normal year because 2023 prices were still high and volatile from the tail of the 2022 gas crisis, which lifted all capture prices.
+Cannibalisation was clear in 2023. Solar lost 15.4% against baseload, wind 10.9%. Solar suffers more because all its output is concentrated in the same midday hours, while wind output is spread over the day and leans towards winter, when prices are higher.
 
-Wind beat solar on every strategy. Wind generation lines up with high-priced winter demand peaks, while solar produces in the cheaper midday window. Across merchant, PPA and mixed strategies, wind revenue came out roughly 1.0 MEUR per year ahead on a 10 MW-equivalent basis.
+Per MWh, wind was worth more than solar under every strategy (86.3 vs 82.0 EUR/MWh merchant). In absolute terms the gap is larger, mainly because wind has a higher load factor.
 
-There is no single best hedge ratio. The risk-adjusted return curve is concave with an interior maximum. Over-hedging kills the scarcity upside, under-hedging leaves the book too volatile. In 2023 the wind optimum sat around 80% PPA (the curve is flat between 60 and 90%, so 70% is close to optimal and simpler to run), and the solar optimum around 40%. A practical 70% PPA / 30% spot book on the wind asset cuts revenue volatility by 30% while keeping merchant exposure to cold-snap spikes. The point is the shape of the trade-off, not a magic number.
+Wind has an interior optimum. The curve is flat between roughly 60% and 90% PPA, with a peak around 75%: over-hedging gives away the scarcity upside, under-hedging leaves the book too volatile. A 70% PPA / 30% spot book cuts wind revenue volatility by about 20% while keeping merchant exposure to cold-snap spikes.
+
+Solar does not. Its monthly revenue swings are driven by the seasonal production shape, which a pay-as-produced PPA does not remove, so hedging lowers volatility by 5% at most. Since the assumed strike (65 EUR/MWh) is below the 2023 solar capture price, each hedged MWh costs return, and the optimum falls to 0% PPA. The point is the shape of the trade-off, not a magic number.
 
 ## Limitations
 
 * Single year (2023), so the results depend on the price regime. This is not a walk-forward backtest across several environments.
-* The 10 MW asset uses the national fleet profile as a proxy, with no site-specific shape or curtailment.
+* The risk metric (standard deviation of 12 monthly revenues) mixes genuine uncertainty with the predictable seasonal shape of production. A better version would measure deviation from an expected monthly profile estimated over several years.
+* The 10 MW asset uses the national fleet profile as a proxy. Scaling to peak output rather than installed capacity overstates load factors (19% solar, 32% wind here, above the real fleet). Capture prices and hedge ratios are unaffected; absolute revenues are overstated.
 * PPA strikes are fixed assumptions, not tenor or shape-adjusted prices.
 * Day-Ahead only, with no intraday or imbalance settlement.
+
+## Changelog
+
+* v2 (October 2026): fixed a date-parsing bug. RTE dates are month-first; parsing them day-first swapped day and month for the first twelve days of each month, misaligning volumes and prices. Also stopped interpolating genuine zeros and recovered the daylight-saving hours. All results above are from v2.
+
+## How to run
+
+```
+pip install -r requirements.txt
+jupyter notebook Renewable_Asset_Valuation_2023.ipynb
+```
 
 ## Tech stack
 
